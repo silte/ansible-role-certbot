@@ -15,5 +15,21 @@
   loop_control:
     loop_var: cert_item
 
+- include_tasks: create-cert-manual.yml
+  with_items: "{{ certbot_certs }}"
+  when:
+    - certbot_create_if_missing
+    - certbot_create_method == 'manual'
+  loop_control:
+    loop_var: cert_item
+
+- name: Restart web server services.
+  service:
+    name: "{{ item }}"
+    state: restarted
+  when: certbot_create_method == 'manual'
+  with_items: "{{ certbot_create_standalone_stop_services }}"
+
+
 - import_tasks: renew-cron.yml
   when: certbot_auto_renew
